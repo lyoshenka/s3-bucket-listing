@@ -37,8 +37,10 @@ if (typeof S3B_SORT == 'undefined') {
 
 jQuery(function($) { getS3Data(); });
 
-// This will sort your file listing by most recently modified.
-// Flip the comparator to '>' if you want oldest files first.
+function cmp(a, b, reverse) {
+  return (a > b ? 1 : (a < b ? -1 : 0)) * (reverse ? -1 : 1);
+}
+
 function sortFunction(a, b) {
   switch (S3B_SORT) {
     case "OLD2NEW":
@@ -53,6 +55,8 @@ function sortFunction(a, b) {
       return a.Size < b.Size ? 1 : -1;
     case "SMALL2BIG":
       return a.Size > b.Size ? 1 : -1;
+    case "LBRY":
+      return cmp(a.LastModified,b.LastModified,true) || cmp(a.Key,b.Key,true);
   }
 }
 function getS3Data(marker, html) {
@@ -75,6 +79,9 @@ function getS3Data(marker, html) {
           var sortedFiles = info.files;
           sortedFiles.sort(sortFunction);
           info.files = sortedFiles;
+          var sortedDirs = info.directories;
+          sortedDirs.sort(sortFunction);
+          info.directories = sortedDirs;
         }
 
         buildNavigation(info);
@@ -95,14 +102,14 @@ function getS3Data(marker, html) {
 }
 
 function buildNavigation(info) {
-  var root = S3BL_IGNORE_PATH == false ? 
-    '<a href="/">' + BUCKET_WEBSITE_URL + '</a> / ' : 
+  var root = S3BL_IGNORE_PATH == false ?
+    '<a href="/">' + BUCKET_WEBSITE_URL + '</a> / ' :
     '<a href="?prefix=">' + BUCKET_WEBSITE_URL + '</a> / ';
   if (info.prefix) {
     var processedPathSegments = '';
     var content = $.map(info.prefix.split('/'), function(pathSegment) {
       processedPathSegments = processedPathSegments + encodeURIComponent(pathSegment) + '/';
-      return S3BL_IGNORE_PATH == false ? 
+      return S3BL_IGNORE_PATH == false ?
         '<a href="/' + processedPathSegments + '">' + pathSegment + '</a>' :
         '<a href="?prefix=' + processedPathSegments + '">' + pathSegment + '</a>';
     });
