@@ -95,14 +95,16 @@ function getS3Data(marker, html) {
 }
 
 function buildNavigation(info) {
-  var root = '<a href="?prefix=">' + BUCKET_WEBSITE_URL + '</a> / ';
+  var root = S3BL_IGNORE_PATH == false ? 
+    '<a href="/">' + BUCKET_WEBSITE_URL + '</a> / ' : 
+    '<a href="?prefix=">' + BUCKET_WEBSITE_URL + '</a> / ';
   if (info.prefix) {
     var processedPathSegments = '';
     var content = $.map(info.prefix.split('/'), function(pathSegment) {
-      processedPathSegments =
-          processedPathSegments + encodeURIComponent(pathSegment) + '/';
-      return '<a href="?prefix=' + processedPathSegments + '">' + pathSegment +
-             '</a>';
+      processedPathSegments = processedPathSegments + encodeURIComponent(pathSegment) + '/';
+      return S3BL_IGNORE_PATH == false ? 
+        '<a href="/' + processedPathSegments + '">' + pathSegment + '</a>' :
+        '<a href="?prefix=' + processedPathSegments + '">' + pathSegment + '</a>';
     });
     $('#navigation').html(root + content.join(' / '));
   } else {
